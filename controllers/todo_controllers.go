@@ -2,25 +2,32 @@ package controllers
 
 import (
 	"net/http"
-	"todo-service/services"
+	"todo-service/depedency"
 	"todo-service/models"
+	"todo-service/services"
+
 	"github.com/gin-gonic/gin"
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
-func CreateTodoEntry(c *gin.Context, todoCollection *mongo.Collection) {
+type TodoController struct {
+	TodoService depedency.TodoService
+}
+
+func (t *TodoController) CreateTodoEntry(c *gin.Context) error {
 	var todo models.Todo
 	if err := c.ShouldBindJSON(&todo); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		return
+		return err
 	}
 
-	result, err := services.CreateTodo(todo, todoCollection)
+	err := t.TodoService.CreateTodo(todo)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-		return
+		return err
 	}
-	c.JSON(http.StatusCreated, result)
+	c.Status(http.StatusCreated)
+	return nil
 }
 
 func GetTodos(c *gin.Context, todoCollection *mongo.Collection) {

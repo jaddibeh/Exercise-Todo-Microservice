@@ -4,18 +4,27 @@ import (
 	"context"
 	"time"
 	"todo-service/models"
-	"go.mongodb.org/mongo-driver/mongo"
+
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
+	"go.mongodb.org/mongo-driver/mongo"
 )
+
+type TodoService struct {
+	TodoCollection *mongo.Collection
+}
 
 var ctx = context.Background()
 
-func CreateTodo(todo models.Todo, todoCollection *mongo.Collection) (*mongo.InsertOneResult, error) {
+func (t *TodoService) CreateTodo(todo models.Todo) error {
 	todo.CreatedAt = time.Now()
 	todo.UpdatedAt = time.Now()
-	result, err := todoCollection.InsertOne(ctx, todo)
-	return result, err
+	result, err := t.TodoCollection.InsertOne(ctx, todo)
+	if result.InsertedID == nil && err != nil {
+		return err
+	}
+	todo.ID = result.InsertedID.(primitive.ObjectID)
+	return nil
 }
 
 func GetTodos(status string, todoCollection *mongo.Collection) ([]models.Todo, error) {

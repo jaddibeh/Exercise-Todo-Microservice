@@ -12,7 +12,7 @@ import (
 
 var MongoClient *mongo.Client
 
-func ConnectDB() error {
+func ConnectDB() (*mongo.Client, error) {
 	// Replace with your MongoDB cloud connection string
 	uri := "mongodb+srv://jaddibeh:Jaddibeh2@cluster0.siq35mq.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0"
 	opts := options.Client().ApplyURI(uri)
@@ -20,17 +20,17 @@ func ConnectDB() error {
 	// Create a new client and connect to the server
 	client, err := mongo.Connect(context.TODO(), opts)
 	if err != nil {
-		return fmt.Errorf("failed to connect to MongoDB: %w", err)
+		return nil, fmt.Errorf("failed to connect to MongoDB: %w", err)
 	}
 
 	// Verify the connection
 	if err := client.Ping(context.TODO(), nil); err != nil {
-		return fmt.Errorf("failed to ping MongoDB: %w", err)
+		return nil, fmt.Errorf("failed to ping MongoDB: %w", err)
 	}
 
 	MongoClient = client
 	fmt.Println("Successfully connected to MongoDB!")
-	return nil
+	return client, nil
 }
 
 func DisconnectDB() {
